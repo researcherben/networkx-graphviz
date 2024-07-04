@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """
 query a graphviz dot file
+
+python3 search_graphviz_dot.py --help
+
+python3 search_graphviz_dot.py example_flat_graph.dot --list_all_nodes
+
+python3 search_graphviz_dot.py example_flat_graph.dot --list_all_neighbors a1 1
+
+
 """
 # https://realpython.com/python-logging-source-code/
 import argparse  # https://docs.python.org/3.3/library/argparse.html
@@ -8,8 +16,21 @@ import argparse  # https://docs.python.org/3.3/library/argparse.html
 
 import networkx as nx
 
+def recursive_predecessors(G, prefix_str:str, parent_node_name:str, max_depth: int) -> None:
+	"""
+	recursively print parent nodes
+	"""
+	for this_node in G.predecessors(parent_node_name):
+		print(this_node+" -> "+parent_node_name+prefix_str)
+		max_depth-=1
+		if max_depth>0:
+			prefix_str += " -> "+parent_node_name
+			recursive_predecessors(G, prefix_str, this_node, max_depth)
+	return
+
 def args():
 	"""
+	command-line arguments
 	"""
 	theparser = argparse.ArgumentParser(
 		description="query grpahviz dot file", allow_abbrev=False
@@ -70,8 +91,9 @@ if __name__ == "__main__":
 	G = nx.DiGraph(nx.nx_pydot.read_dot(arguments.dotfilename))
 
 	if arguments.list_all_nodes:
-		print("all nodes:")
-		print(G.nodes)
+		#print("all nodes:")
+		for this_node in G.nodes:
+			print(this_node)
 		# ['start', 'end', 'a0', 'b0', 'a1', 'b3', 'b2', 'a3']
 
 	if arguments.list_all_neighbors:
@@ -86,8 +108,9 @@ if __name__ == "__main__":
 	if arguments.list_upstream:
 		print("upstream neighbors of "+arguments.list_upstream[0]+" to depth "+arguments.list_upstream[1]+":")
 		#print(list(G.predecessors(arguments.list_upstream[0])))
-		for this_node in G.predecessors(arguments.list_upstream[0]):
-			print(this_node+" -> "+arguments.list_upstream[0])
+		#for this_node in G.predecessors(arguments.list_upstream[0]):
+		#	print(this_node+" -> "+arguments.list_upstream[0])
+		recursive_predecessors(G, "", arguments.list_upstream[0], max_depth=int(arguments.list_upstream[1]))
 
 	# https://networkx.org/documentation/stable/reference/classes/generated/networkx.DiGraph.successors.html#networkx.DiGraph.successors
 	if arguments.list_downstream:
@@ -95,10 +118,12 @@ if __name__ == "__main__":
 		#print(list(G.successors(arguments.list_downstream[0])))
 		for nearest_node in G.successors(arguments.list_downstream[0]):
 			print("depth=1: "+arguments.list_downstream[0]+" -> "+nearest_node)
-			for next_nearest_node in G.successors(nearest_node):
-				print("depth=2: "+arguments.list_downstream[0]+" -> "+nearest_node+" -> "+next_nearest_node)
-				for next_next_nearest_node in G.successors(next_nearest_node):
-					print("depth=3: "+arguments.list_downstream[0]+" -> "+nearest_node+" -> "+next_nearest_node+" -> "+next_next_nearest_node)
+			if arguments.list_downstream[1]>2:
+				for next_nearest_node in G.successors(nearest_node):
+					print("depth=2: "+arguments.list_downstream[0]+" -> "+nearest_node+" -> "+next_nearest_node)
+					if arguments.list_downstream[1]>3:
+						for next_next_nearest_node in G.successors(next_nearest_node):
+							print("depth=3: "+arguments.list_downstream[0]+" -> "+nearest_node+" -> "+next_nearest_node+" -> "+next_next_nearest_node)
 
 	if arguments.shortest_path:
 		try:
