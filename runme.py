@@ -67,7 +67,7 @@ if __name__ == "__main__":
 	#print("filename=",arguments.dotfilename)
 
 	# https://networkx.org/documentation/stable/reference/generated/networkx.drawing.nx_pydot.read_dot.html
-	G = nx.Graph(nx.nx_pydot.read_dot(arguments.dotfilename))
+	G = nx.DiGraph(nx.nx_pydot.read_dot(arguments.dotfilename))
 
 	if arguments.list_all_nodes:
 		print("all nodes:")
@@ -76,21 +76,38 @@ if __name__ == "__main__":
 
 	if arguments.list_all_neighbors:
 		print("neighbors of "+arguments.list_all_neighbors[0]+" to depth "+arguments.list_all_neighbors[1]+":")
-		print(list(nx.all_neighbors(G, arguments.list_all_neighbors[0])))
+		#print(list(nx.all_neighbors(G, arguments.list_all_neighbors[0])))
+		for this_node in G.predecessors(arguments.list_all_neighbors[0]):
+			print(this_node+" -> "+arguments.list_all_neighbors[0])
+		for this_node in G.successors(arguments.list_all_neighbors[0]):
+			print(arguments.list_all_neighbors[0]+" -> "+this_node)
 
 	# https://networkx.org/documentation/stable/reference/classes/generated/networkx.DiGraph.predecessors.html
 	if arguments.list_upstream:
 		print("upstream neighbors of "+arguments.list_upstream[0]+" to depth "+arguments.list_upstream[1]+":")
-		print(list(nx.predecessors(G, arguments.list_upstream[0])))
+		#print(list(G.predecessors(arguments.list_upstream[0])))
+		for this_node in G.predecessors(arguments.list_upstream[0]):
+			print(this_node+" -> "+arguments.list_upstream[0])
 
 	# https://networkx.org/documentation/stable/reference/classes/generated/networkx.DiGraph.successors.html#networkx.DiGraph.successors
 	if arguments.list_downstream:
-		print("down neighbors of "+arguments.list_downstream[0]+" to depth "+arguments.list_downstream[1]+":")
-		print(list(nx.successors(G, arguments.list_downstream[0])))
+		print("downstream neighbors of "+arguments.list_downstream[0]+" to depth "+arguments.list_downstream[1]+":")
+		#print(list(G.successors(arguments.list_downstream[0])))
+		for nearest_node in G.successors(arguments.list_downstream[0]):
+			print("depth=1: "+arguments.list_downstream[0]+" -> "+nearest_node)
+			for next_nearest_node in G.successors(nearest_node):
+				print("depth=2: "+arguments.list_downstream[0]+" -> "+nearest_node+" -> "+next_nearest_node)
+				for next_next_nearest_node in G.successors(next_nearest_node):
+					print("depth=3: "+arguments.list_downstream[0]+" -> "+nearest_node+" -> "+next_nearest_node+" -> "+next_next_nearest_node)
 
 	if arguments.shortest_path:
-		path = nx.shortest_path(G, arguments.shortest_path[0], arguments.shortest_path[1])
-		print(path)
+		try:
+			path = nx.shortest_path(G, arguments.shortest_path[0], arguments.shortest_path[1])
+			print(path)
+		except nx.exception.NetworkXNoPath as e:
+			print("\n")
+			print(e)
+			print("Try reversing the order of the nodes. Directionality matters.")
 
 
 	#print([n for n in G.predecessors('a1')])
