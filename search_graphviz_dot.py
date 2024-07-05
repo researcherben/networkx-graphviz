@@ -108,6 +108,27 @@ def args() -> None:
 
     # optional argument
     theparser.add_argument(
+        "--list_start_nodes",
+        action="store_true",  # https://stackoverflow.com/a/5271692/1164295
+        help="list nodes that have only outbound edges",
+    )
+
+    # optional argument
+    theparser.add_argument(
+        "--list_end_nodes",
+        action="store_true",  # https://stackoverflow.com/a/5271692/1164295
+        help="list nodes that have only inbound edges",
+    )
+
+    # optional argument
+    theparser.add_argument(
+        "--list_unconnected_nodes",
+        action="store_true",  # https://stackoverflow.com/a/5271692/1164295
+        help="list nodes that have no edges",
+    )
+
+    # optional argument
+    theparser.add_argument(
         "--shortest_path",
         nargs=2,
         metavar=(
@@ -134,6 +155,27 @@ if __name__ == "__main__":
         # print("all nodes:")
         for this_node in G.nodes:
             print(this_node)
+
+    if arguments.list_start_nodes:
+        for this_node in G.nodes:
+            list_of_predecessors = G.predecessors(this_node)
+            list_of_successors = G.successors(this_node)
+            if ((len(list_of_predecessors)==0) and (len(list_of_successors)>0)):
+                print(this_node)
+
+    if arguments.list_end_nodes:
+        for this_node in G.nodes:
+            list_of_predecessors = G.predecessors(this_node)
+            list_of_successors = G.successors(this_node)
+            if ((len(list_of_predecessors)>0) and (len(list_of_successors)==0)):
+                print(this_node)
+
+    if arguments.list_unconnected_nodes:
+        for this_node in G.nodes:
+            list_of_predecessors = G.predecessors(this_node)
+            list_of_successors = G.successors(this_node)
+            if ((len(list_of_predecessors)==0) and (len(list_of_successors)==0)):
+                print(this_node)
 
     if arguments.list_all_neighbors:
         print(
